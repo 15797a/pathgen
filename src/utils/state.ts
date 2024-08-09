@@ -15,7 +15,7 @@ import {
   type PathPointOptions,
   type PointExport,
 } from ".";
-import type { Background } from "./background";
+import { backgrounds, type Background } from "./background";
 import {
   pathAlgorithms,
   GeneratedPoint,
@@ -103,7 +103,7 @@ export interface PathConfig {
 
 export const config = writable<PathConfig>({
   algorithm: "cubic-spline",
-  background: "over-under",
+  background: Object.keys(backgrounds)[0] as Background,
   autosave: false,
   flags: {},
   distanceBetween: 0.5,
