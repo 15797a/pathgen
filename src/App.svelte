@@ -18,7 +18,7 @@
   import { backgrounds } from "$utils/background";
 
   import Fa from "svelte-fa";
-  import { faAdd, faDownLong, faUpLong } from "@fortawesome/free-solid-svg-icons";
+  import { faAdd, faCopy, faDownLong, faUpLong } from "@fortawesome/free-solid-svg-icons";
 
   let newFlagName = "";
   let newFlagType: FlagType = "boolean";
@@ -38,7 +38,7 @@
   let initialHeight = -1;
   let container: HTMLDivElement | null = null;
   $: if (container && initialHeight < 0) initialHeight = container.offsetHeight;
-	
+
   $: maxLayer =
     $points.reduce((a, b) => Math.max(a, ...b.layers), 0) ??
     Math.max(...pathPoint?.layers!);
@@ -106,6 +106,20 @@
                   {/if}
                 {/if}
               </div>
+              <button
+                class="text-lg flex items-center justify-center h-8 w-8 rounded-full hover:bg-opacity-10 bg-slate-200 bg-opacity-0"
+                on:click={() => {
+                  document
+                    .querySelector("canvas")
+                    ?.toBlob((blob) =>
+                      navigator.clipboard.write(
+                        blob ? [new ClipboardItem({ "image/png": blob })] : []
+                      )
+                    );
+                }}
+              >
+                <Fa icon={faCopy} />
+              </button>
             </h1>
 
             <!-- PATH CONFIG -->
@@ -399,7 +413,12 @@
                       on:change={(e) => {
                         // @ts-ignore
                         if (e.target.checked && point) {
-                          point.flagsAny[flag.key] = flag.type === "boolean" ? false : flag.type === "action" ? true : 0;
+                          point.flagsAny[flag.key] =
+                            flag.type === "boolean"
+                              ? false
+                              : flag.type === "action"
+                                ? true
+                                : 0;
                         } else if (point) {
                           delete point.flagsAny[flag.key];
                           point = point;
