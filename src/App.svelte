@@ -495,7 +495,7 @@
   <div class="h-12 bg-slate-900 text-white flex items-center text-xl px-5 font-mono">
     Copyright &COPY; <a href="https://haelp.dev" class="ml-2 underline" target="_blank"
       >Joshua Liu</a
-    >, Brandon Ni, Michael Han {new Date().getFullYear()}
+    > and Michael Han {new Date().getFullYear()}
     <span class="ml-auto">v{CONSTANTS.version}</span>
   </div>
 </main>

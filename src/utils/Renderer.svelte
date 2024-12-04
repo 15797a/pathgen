@@ -177,7 +177,7 @@
           // spawn new point
           points.update((p) => {
             const handles: PathPointOptions["handles"] =
-              $config.algorithm === "catmull-rom" ? [] : [new Point(8, 0)];
+              $config.algorithm !== "cubic-spline" ? [] : [new Point(8, 0)];
             if (p.length > 1 && ["cubic-spline"].includes($config.algorithm)) {
               p[p.length - 1].handles.push(new Point(-8, 0));
               p[p.length - 1].makeCollinear(0);
