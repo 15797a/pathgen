@@ -32,8 +32,8 @@ const calculateAngularVelocity = (
   }
 
   // Step 5: Calculate angular velocity
-  const angular_velocity = (ddy * dx - ddx * dy) / Math.pow(velocity_squared, 1.5);
-	// const angular_velocity = (ddy * dx - ddx * dy) / velocity_squared;
+  // const angular_velocity = (ddy * dx - ddx * dy) / Math.pow(velocity_squared, 1.5);
+	const angular_velocity = (ddy * dx - ddx * dy) / velocity_squared;
 
   return angular_velocity;
 };
