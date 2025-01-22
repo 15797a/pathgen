@@ -63,7 +63,7 @@
 
     let animationId = 0;
     const render = () => {
-      if (!canvas) {
+      if (!canvas || $state.generatedPoints.length < 2) {
         animationId = requestAnimationFrame(render);
         return;
       }
@@ -129,7 +129,7 @@
 
       // middle number
       ctx.fillText(
-        ((max - min) / 2).toFixed(2),
+        ((max + min) / 2).toFixed(2),
         margin.left - 5,
         margin.top + (canvas.height - margin.bottom - margin.top) / 2
       );

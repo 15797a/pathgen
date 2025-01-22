@@ -1,7 +1,7 @@
 import { Point } from "$utils";
 import { Bernstein } from "./bernstein";
 
-const calculateAngularVelocity = (
+const calculateCurvature = (
   p_minus1: Point,
   p_0: Point,
   p_1: Point,
@@ -32,12 +32,11 @@ const calculateAngularVelocity = (
   }
 
   // Step 5: Calculate angular velocity
-  // const angular_velocity = (ddy * dx - ddx * dy) / Math.pow(velocity_squared, 1.5);
-	const angular_velocity = (ddy * dx - ddx * dy) / velocity_squared;
+  const angular_velocity = (ddy * dx - ddx * dy) / Math.pow(velocity_squared, 1.5);
+  // const angular_velocity = (ddy * dx - ddx * dy) / velocity_squared;
 
   return angular_velocity;
 };
-
 
 export class BezierSpline {
   points: Point[];
@@ -232,32 +231,32 @@ export class BezierSpline {
     for (let i = this.spline.length - 1; i > 0; i--) {
       const dist = Point.distance(this.spline[i][1], this.spline[i - 1][1]);
       let newVel = Math.sqrt(2 * maxAccel * dist + Math.pow(this.spline[i][3], 2));
-      newVel = Math.min(this.spline[i - 1][3], newVel);
-      this.spline[i - 1][3] = newVel;
+      this.spline[i - 1][3] = Math.min(this.spline[i - 1][3], newVel);
     }
 
-		// compute time for all points
-		let runningTime = 0;
-		for (let i = 0; i < this.spline.length - 1; i++) {
-			const dist = Point.distance(this.spline[i][1], this.spline[i + 1][1]);
-			const time = dist / this.spline[i][3];
-			runningTime += time;
-			this.spline[i + 1][2] = runningTime;
-		}
+    // compute time for all points
+    let runningTime = 0;
+    for (let i = 0; i < this.spline.length - 1; i++) {
+      const dist = Point.distance(this.spline[i][1], this.spline[i + 1][1]);
+      const time = dist / this.spline[i][3];
+      runningTime += time;
+      this.spline[i + 1][2] = runningTime;
+    }
 
-		// compute angular velocity for all points
-		for (let i = 1; i < this.spline.length - 1; i++) {
-			const angularVelocity = calculateAngularVelocity(
-				this.spline[i - 1][1],
-				this.spline[i][1],
-				this.spline[i + 1][1],
-				this.spline[i][2] - this.spline[i - 1][2]
-			);
-			this.spline[i][4] = angularVelocity;
-		}
+    // compute angular velocity for all points
+    for (let i = 1; i < this.spline.length - 1; i++) {
+      const angularVelocity =
+        calculateCurvature(
+          this.spline[i - 1][1],
+          this.spline[i][1],
+          this.spline[i + 1][1],
+          this.spline[i][2] - this.spline[i - 1][2]
+        ) * this.spline[i][3];
+      this.spline[i][4] = angularVelocity;
+    }
 
-		this.spline[0][4] = this.spline[1][4];
-		this.spline[this.spline.length - 1][4] = this.spline[this.spline.length - 2][4];
+    this.spline[0][4] = this.spline[1][4];
+    this.spline[this.spline.length - 1][4] = this.spline[this.spline.length - 2][4];
 
     return this;
   }
@@ -270,7 +269,12 @@ export class BezierSpline {
 
     // first index is point, second part is speed
     for (let i = 0; i < this.spline.length; i++) {
-      path.push([this.spline[i][1], this.spline[i][2], this.spline[i][3], this.spline[i][4]]);
+      path.push([
+        this.spline[i][1],
+        this.spline[i][2],
+        this.spline[i][3],
+        this.spline[i][4],
+      ]);
       // console.log(this.spline[i][2]);
     }
     return path;
