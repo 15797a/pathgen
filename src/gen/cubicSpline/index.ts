@@ -17,7 +17,10 @@ const inner_cubicSpline = (path: Point[], k = 3): GeneratedPoint[] => {
     k
   );
 
-  return res.map(([point, speed]) => new GeneratedPoint(point.x, point.y, speed));
+  return res.map(
+    ([point, time, speed, angular]) =>
+      new GeneratedPoint(point.x, point.y, time, speed, angular)
+  );
 };
 
 export const cubicSpline = (path: PathPoint[], k = 3): GeneratedPoint[] => {

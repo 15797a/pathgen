@@ -6,6 +6,28 @@
   let canvas: HTMLCanvasElement | null = null;
   $: width = canvas ? canvas?.parentElement?.offsetWidth! - 0.0001 : 100;
 
+  const modes = [
+    {
+      name: "speed",
+      color: "white",
+    },
+    {
+      name: "angular",
+      color: "#fb923c",
+    },
+    {
+      name: "time",
+      color: "#22d3ee",
+    },
+  ] as const;
+
+  let selectedMode = 0;
+  const toggleMode = () => {
+    selectedMode = (selectedMode + 1) % modes.length;
+  };
+
+  $: mode = modes[selectedMode];
+
   const margin = {
     top: 30,
     left: 60,
@@ -48,7 +70,7 @@
       const ctx = canvas.getContext("2d")!;
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.strokeStyle = ctx.fillStyle = "white";
+      ctx.strokeStyle = ctx.fillStyle = mode.color;
       ctx.setLineDash([10, 10]);
 
       ctx.lineWidth = lineWidth;
@@ -80,30 +102,40 @@
       ctx.stroke();
 
       // LEFT NUMBERS
-      ctx.font = "20px monospace";
+      ctx.font = "15px monospace";
 
       ctx.textAlign = "right";
       ctx.textBaseline = "middle";
+
+      const max =
+        mode.name === "speed"
+          ? $config.bot.maxVelocity
+          : $state.generatedPoints.reduce(
+              (a, b) => Math.max(a, b[mode.name]),
+              $state.generatedPoints[0][mode.name]
+            );
+      const min =
+        mode.name === "speed"
+          ? -$config.bot.maxVelocity
+          : $state.generatedPoints.reduce(
+              (a, b) => Math.min(a, b[mode.name]),
+              $state.generatedPoints[0][mode.name]
+            );
+
+      ctx.fillStyle = mode.color;
+
       // top number
-      ctx.fillText(
-        Math.round($config.bot.maxVelocity).toString(),
-        margin.left - 5,
-        margin.top
-      );
+      ctx.fillText(max.toFixed(2), margin.left - 5, margin.top);
 
       // middle number
       ctx.fillText(
-        "0",
+        ((max - min) / 2).toFixed(2),
         margin.left - 5,
         margin.top + (canvas.height - margin.bottom - margin.top) / 2
       );
 
       // bottom number
-      ctx.fillText(
-        Math.round(-$config.bot.maxVelocity).toString(),
-        margin.left - 5,
-        canvas.height - margin.bottom
-      );
+      ctx.fillText(min.toFixed(2), margin.left - 5, canvas.height - margin.bottom);
 
       // BOTTOM NUMBERS
       ctx.textAlign = "center";
@@ -124,28 +156,68 @@
       for (let i = 0; i < $state.generatedPoints.length - 1; i++) {
         const start = $state.generatedPoints[i];
         const end = $state.generatedPoints[i + 1];
-        ctx.beginPath();
-        ctx.moveTo(
-          margin.left +
-            (i * (canvas.width - margin.left - margin.right)) /
-              ($state.generatedPoints.length - 1),
-          margin.top +
-            ((canvas.height - margin.bottom - margin.top) *
-              (1 - start.speed / $config.bot.maxVelocity)) /
-              2
+
+        const graphSegment = (
+          from: number,
+          to: number,
+          min: number,
+          max: number,
+          color: string
+        ) => {
+          ctx.strokeStyle = color;
+          ctx.beginPath();
+          ctx.moveTo(
+            margin.left +
+              (i * (canvas!.width - margin.left - margin.right)) /
+                ($state.generatedPoints.length - 1),
+            margin.top +
+              (canvas!.height - margin.bottom - margin.top) *
+                (1 - (from - min) / (max - min))
+          );
+          ctx.lineTo(
+            margin.left +
+              ((i + 1) * (canvas!.width - margin.left - margin.right)) /
+                ($state.generatedPoints.length - 1),
+            margin.top +
+              (canvas!.height - margin.bottom - margin.top) *
+                (1 - (to - min) / (max - min))
+          );
+          ctx.stroke();
+        };
+
+        graphSegment(
+          start.speed,
+          end.speed,
+          -$config.bot.maxVelocity,
+          $config.bot.maxVelocity,
+          "white"
         );
-        ctx.lineTo(
-          margin.left +
-            ((i + 1) * (canvas.width - margin.left - margin.right)) /
-              ($state.generatedPoints.length - 1),
-          margin.top +
-            ((canvas.height - margin.bottom - margin.top) *
-              (1 - end.speed / $config.bot.maxVelocity)) /
-              2
+        graphSegment(
+          start.angular,
+          end.angular,
+          $state.generatedPoints.reduce(
+            (a, b) => Math.min(a, b.angular),
+            $state.generatedPoints[0].angular
+          ),
+          $state.generatedPoints.reduce(
+            (a, b) => Math.max(a, b.angular),
+            $state.generatedPoints[0].angular
+          ),
+          "#fb923c"
         );
-        ctx.stroke();
+        graphSegment(
+          start.time,
+          end.time,
+          0,
+          $state.generatedPoints.reduce(
+            (a, b) => Math.max(a, b.time),
+            $state.generatedPoints[0].time
+          ),
+          "#22d3ee"
+        );
 
         // MOUSE LINE
+        ctx.strokeStyle = "white";
         if (mouse && mouse > margin.left && mouse < canvas.width - margin.right) {
           ctx.beginPath();
           ctx.moveTo(mouse, margin.top);
@@ -162,7 +234,7 @@
           ctx.textAlign = "right";
           ctx.textBaseline = "bottom";
           ctx.fillText(
-            $state.generatedPoints[$state.visible.highlightIndex].speed.toFixed(2),
+            $state.generatedPoints[$state.visible.highlightIndex][mode.name].toFixed(2),
             canvas.width - margin.right - 20,
             margin.top - 3
           );
@@ -185,5 +257,5 @@
 </script>
 
 <div class="border-2 border-white rounded-3xl overflow-hidden">
-  <canvas bind:this={canvas} {width} height="200"></canvas>
+  <canvas bind:this={canvas} {width} height="200" on:mousedown={toggleMode}></canvas>
 </div>

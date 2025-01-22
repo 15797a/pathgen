@@ -54,5 +54,5 @@ export const CONSTANTS = {
 	},
 
 	saveTimeout: 1000,
-	version: "0.3.0",
-};
+	version: "1.0.0",
+} as const;

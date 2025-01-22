@@ -46,39 +46,63 @@ export const findPoint = (p0: Point, p1: Point, p2: Point, p3: Point, t: number)
 };
 
 export interface GeneratedPointExport {
-	x: number;
-	y: number;
-	speed: number;
-	index: number;
+  x: number;
+  y: number;
+  time: number;
+  speed: number;
+  angular: number;
+  index: number;
 }
 
 export class GeneratedPoint extends Point {
-	speed: number = 0;
-	index: number = 0;
+  time: number = 0;
+  speed: number = 0;
+  angular: number = 0;
+  index: number = 0;
 
-	constructor(x: number = 0, y: number = 0, speed: number = 0, index: number = 0) {
-		super(x, y);
-		this.speed = speed;
-		this.index = index;
-	}
+  constructor(
+    x: number = 0,
+    y: number = 0,
+    time = 0,
+    speed: number = 0,
+    angular = 0,
+    index: number = 0
+  ) {
+    super(x, y);
+    this.time = time;
+    this.speed = speed;
+    this.angular = angular;
+    this.index = index;
+  }
 
-	export(): GeneratedPointExport {
-		return {
-			x: this.x,
-			y: this.y,
-			speed: this.speed,
-			index: this.index,
-		}
-	}
+  export(): GeneratedPointExport {
+    return {
+      x: this.x,
+      y: this.y,
+      time: this.time,
+      speed: this.speed,
+      angular: this.angular,
+      index: this.index,
+    };
+  }
 
-	static from(point: GeneratedPointExport) {
-		const p = new GeneratedPoint(point.x, point.y);
-		p.speed = point.speed;
-		p.index = point.index;
-		return p;
-	}
+  static from(point: GeneratedPointExport) {
+    const p = new GeneratedPoint(point.x, point.y);
+    p.time = point.time;
+    p.speed = point.speed;
+    p.angular = point.angular;
+    p.index = point.index;
+    return p;
+  }
 
-	clone() {
-		return new GeneratedPoint(this.x, this.y, this.speed, this.index) as typeof this;
-	}
+  clone() {
+    return new GeneratedPoint(
+      this.x,
+      this.y,
+      this.time,
+      this.speed,
+      this.angular,
+      this.index
+    ) as typeof this;
+  }
 }

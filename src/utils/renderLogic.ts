@@ -87,6 +87,7 @@ export const drawPath = (ctx: CanvasRenderingContext2D) => {
     ctx.beginPath();
     ctx.moveTo(path[i].x, path[i].y);
     ctx.lineTo(path[i + 1].x, path[i + 1].y);
+    // console.log(path[i].speed);
     ctx.strokeStyle = get(state).visible.coloredPath
       ? numberToColor(path[i].speed / get(config).bot.maxVelocity)
       : CONSTANTS.path.color;
