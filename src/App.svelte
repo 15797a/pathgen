@@ -19,6 +19,7 @@
 
   import Fa from "svelte-fa";
   import { faAdd, faCopy, faDownLong, faUpLong } from "@fortawesome/free-solid-svg-icons";
+  import { onMount } from "svelte";
 
   let newFlagName = "";
   let newFlagType: FlagType = "boolean";
@@ -42,6 +43,18 @@
   $: maxLayer =
     $points.reduce((a, b) => Math.max(a, ...b.layers), 0) ??
     Math.max(...pathPoint?.layers!);
+
+  onMount(() => {
+    const listener = (e: KeyboardEvent) => {
+      if (e.key === "o" && e.ctrlKey) {
+        e.preventDefault();
+        load();
+      }
+    };
+
+    window.addEventListener("keydown", listener);
+    return () => window.removeEventListener("keydown", listener);
+  });
 </script>
 
 <main class="h-screen flex flex-col select-none">
@@ -408,7 +421,7 @@
                   <label class="items-center cursor-pointer relative">
                     <input
                       type="checkbox"
-                      value=""
+                      checked={flag.key in point.flags}
                       class="toggle"
                       on:change={(e) => {
                         // @ts-ignore

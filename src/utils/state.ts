@@ -62,7 +62,7 @@ export type FlagPoint = {
   index: number;
   flags: NonNullable<PathPointOptions["flags"]>;
   flagsAny: { [key: string]: any };
-	layers: number[];
+  layers: number[];
 };
 
 export const flagPoints = writable<FlagPoint[]>([]);
@@ -79,7 +79,7 @@ export const addFlagPoint = (point: number) => {
       set flagsAny(val: any) {
         this.flags = val;
       },
-			layers: [0]
+      layers: [0],
     });
     return f;
   });
@@ -92,7 +92,7 @@ export interface PathConfig {
   flags: { [key: string]: FlagType };
   distanceBetween: number;
   k: number;
-	layers: boolean;
+  layers: boolean;
   bot: {
     maxVelocity: number;
     maxAcceleration: number;
@@ -108,7 +108,7 @@ export const config = writable<PathConfig>({
   flags: {},
   distanceBetween: 0.5,
   k: 3,
-	layers: false,
+  layers: false,
   bot: {
     maxVelocity: 24,
     maxAcceleration: 12,
@@ -147,7 +147,7 @@ export interface AppState {
   generatedPoints: GeneratedPoint[];
   fileHandle: FileSystemFileHandle | null;
   editingMode: EditingMode;
-	handlesWhenSelected: boolean;
+  handlesWhenSelected: boolean;
   visible: {
     points: boolean;
     handles: boolean;
@@ -157,7 +157,7 @@ export interface AppState {
     // other stuff related to rendering
     highlightIndex: number;
     coloredPath: boolean;
-		layer: number;
+    layer: number;
   };
 }
 export const state = writable<AppState>({
@@ -165,7 +165,7 @@ export const state = writable<AppState>({
   generatedPoints: [],
   fileHandle: null,
   editingMode: "pathPoint",
-	handlesWhenSelected: false,
+  handlesWhenSelected: false,
   visible: {
     points: true,
     handles: true,
@@ -174,7 +174,7 @@ export const state = writable<AppState>({
 
     highlightIndex: -1,
     coloredPath: true,
-		layer: 0,
+    layer: 0,
   },
 });
 
@@ -203,9 +203,9 @@ points.subscribe((p) => {
     try {
       s.generatedPoints = algorithm(waypoints, get(config).k);
 
-      flagPoints.update((f) => {
-        return f.filter((flagPoint) => flagPoint.index < s.generatedPoints.length);
-      });
+      flagPoints.update((f) =>
+        f.filter((flagPoint) => flagPoint.index < s.generatedPoints.length)
+      );
 
       return s;
     } catch (e) {
@@ -238,10 +238,13 @@ const exportData = () => {
   const generated = rawPoints.map((point) => ({ ...point, flags: {} }));
   // add flags from points
   get(points).forEach((point) => {
-    const generatedIndex = generated.findIndex((p) => p.x === point.x && p.y === point.y);
-    if (generatedIndex !== -1) {
-      generated[generatedIndex].flags = point.flags;
-    }
+		if (generated.length === 0) return;
+    const closest = generated.reduce((prev, curr) => {
+      const prevDist = Math.hypot(prev.x - point.x, prev.y - point.y);
+      const currDist = Math.hypot(curr.x - point.x, curr.y - point.y);
+      return prevDist < currDist ? prev : curr;
+    });
+    closest.flags = point.flags;
   });
 
   get(flagPoints).forEach((flagPoint) => {
@@ -276,7 +279,7 @@ const importData = (data: any) => {
           flags: point.flags,
           handles: point.handles,
           reverse: point.reverse,
-					layers: point.layers
+          layers: point.layers,
         })
     )
   );
