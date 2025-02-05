@@ -51,7 +51,6 @@ export interface GeneratedPointExport {
   time: number;
   speed: number;
   angular: number;
-  index: number;
 }
 
 export class GeneratedPoint extends Point {
@@ -82,7 +81,6 @@ export class GeneratedPoint extends Point {
       time: this.time,
       speed: this.speed,
       angular: this.angular,
-      index: this.index,
     };
   }
 
@@ -91,7 +89,6 @@ export class GeneratedPoint extends Point {
     p.time = point.time;
     p.speed = point.speed;
     p.angular = point.angular;
-    p.index = point.index;
     return p;
   }
 

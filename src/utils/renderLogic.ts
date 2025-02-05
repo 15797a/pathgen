@@ -6,7 +6,7 @@ const numberToColor = (input: number): string => {
   input = Math.min(1, Math.max(-1, input));
 
   // Map the input range [-1, 1] to the hue range [0, 360]
-  const hue = (input + 1) * 272;
+  const hue = Math.abs(input) * 272;
 
   // Return the color as an HSL string
   return `hsl(${hue}, 100%, 50%)`;
@@ -61,7 +61,12 @@ export const clearCanvas = (ctx: CanvasRenderingContext2D) => {
 
 export const drawBackground = (ctx: CanvasRenderingContext2D) => {
   const background = backgroundImages[get(config).background];
+	ctx.save();
+	ctx.translate(ctx.canvas.width / 2, ctx.canvas.height / 2);
+	ctx.rotate(Math.PI);
+	ctx.translate(-ctx.canvas.width / 2, -ctx.canvas.height / 2);
   ctx.drawImage(background, 0, 0, ctx.canvas.width, ctx.canvas.height);
+	ctx.restore();
 };
 
 export const drawBoundaries = (ctx: CanvasRenderingContext2D) => {

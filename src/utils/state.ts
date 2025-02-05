@@ -238,7 +238,7 @@ const exportData = () => {
   const generated = rawPoints.map((point) => ({ ...point, flags: {} }));
   // add flags from points
   get(points).forEach((point) => {
-		if (generated.length === 0) return;
+    if (generated.length === 0) return;
     const closest = generated.reduce((prev, curr) => {
       const prevDist = Math.hypot(prev.x - point.x, prev.y - point.y);
       const currDist = Math.hypot(curr.x - point.x, curr.y - point.y);
@@ -255,9 +255,18 @@ const exportData = () => {
 
   return {
     config: get(config),
-    points: get(points).map((point) => point.export()),
+    points: get(points)
+      .map((point) => point.export()),
     flagPoints: get(flagPoints),
-    generated,
+    generated: generated
+      .map((point) => ({
+        x: Math.round(point.x * 100),
+        y: Math.round(point.y * 100),
+				time: Math.round(point.time * 100),
+				speed: Math.round(point.speed * 100),
+				angular: Math.round(point.angular * 100),
+				flags: point.flags
+      })),
     version: CONSTANTS.version,
   };
 };

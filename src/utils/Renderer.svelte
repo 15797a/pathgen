@@ -352,7 +352,11 @@
           p[($state.selected as PointSelection)?.point].y -= amt;
           return p;
         });
-      } else if (e.key.toLowerCase() === "z" && e.ctrlKey) undo();
+      } else if (e.key.toLowerCase() === "z" && e.ctrlKey) {
+        e.preventDefault();
+        e.stopPropagation();
+        undo();
+      }
     });
 
     // @ts-expect-error
