@@ -11,16 +11,16 @@ export type Background =
   | "over-under-skills"
   | "high-stakes"
   | "high-stakes-skills"
-	| "push-back"
-	| "push-back-skills"
+  | "push-back"
+  | "push-back-skills"
   | "default";
 
 export const backgrounds: { [key in Background]: string } = {
+  "push-back": pushBack,
+  "push-back-skills": pushBackSkills,
   "high-stakes": highStakes,
   "high-stakes-skills": highStakesSkills,
   "over-under": overUnder,
   "over-under-skills": overUnderSkills,
-	"push-back": pushBack,
-	"push-back-skills": pushBackSkills,
   default: defaultBackground,
 };
