@@ -15,10 +15,6 @@
       name: "angular",
       color: "#fb923c",
     },
-    {
-      name: "time",
-      color: "#22d3ee",
-    },
   ] as const;
 
   let selectedMode = 0;
@@ -141,12 +137,16 @@
       ctx.textAlign = "center";
       ctx.textBaseline = "top";
 
-      // left number
-      ctx.fillText("0", margin.left, canvas.height - margin.bottom + 5);
+      const maxTime = $state.generatedPoints.length > 0 
+        ? $state.generatedPoints[$state.generatedPoints.length - 1].time 
+        : 0;
 
-      // right number
+      // left number (starting time)
+      ctx.fillText("0s", margin.left, canvas.height - margin.bottom + 5);
+
+      // right number (ending time)
       ctx.fillText(
-        $state.generatedPoints.length.toString(),
+        maxTime.toFixed(2) + "s",
         canvas.width - margin.right,
         canvas.height - margin.bottom + 5
       );
@@ -157,6 +157,9 @@
         const start = $state.generatedPoints[i];
         const end = $state.generatedPoints[i + 1];
 
+        const startTime = start.time;
+        const endTime = end.time;
+
         const graphSegment = (
           from: number,
           to: number,
@@ -166,18 +169,21 @@
         ) => {
           ctx.strokeStyle = color;
           ctx.beginPath();
+          const xStart = maxTime > 0 
+            ? margin.left + (startTime * (canvas!.width - margin.left - margin.right)) / maxTime
+            : margin.left;
+          const xEnd = maxTime > 0 
+            ? margin.left + (endTime * (canvas!.width - margin.left - margin.right)) / maxTime
+            : margin.left;
+          
           ctx.moveTo(
-            margin.left +
-              (i * (canvas!.width - margin.left - margin.right)) /
-                ($state.generatedPoints.length - 1),
+            xStart,
             margin.top +
               (canvas!.height - margin.bottom - margin.top) *
                 (1 - (from - min) / (max - min))
           );
           ctx.lineTo(
-            margin.left +
-              ((i + 1) * (canvas!.width - margin.left - margin.right)) /
-                ($state.generatedPoints.length - 1),
+            xEnd,
             margin.top +
               (canvas!.height - margin.bottom - margin.top) *
                 (1 - (to - min) / (max - min))
@@ -205,16 +211,6 @@
           ),
           "#fb923c"
         );
-        graphSegment(
-          start.time,
-          end.time,
-          0,
-          $state.generatedPoints.reduce(
-            (a, b) => Math.max(a, b.time),
-            $state.generatedPoints[0].time
-          ),
-          "#22d3ee"
-        );
 
         // MOUSE LINE
         ctx.strokeStyle = "white";
@@ -224,10 +220,31 @@
           ctx.lineTo(mouse, canvas.height - margin.bottom);
           ctx.stroke();
 
-          $state.visible.highlightIndex = Math.round(
-            (($state.generatedPoints.length - 1) * (mouse - margin.left)) /
-              (canvas.width - margin.left - margin.right)
-          );
+          const maxTime = $state.generatedPoints[$state.generatedPoints.length - 1].time;
+          
+          if (maxTime > 0) {
+            const mouseTime = (maxTime * (mouse - margin.left)) / 
+              (canvas.width - margin.left - margin.right);
+            
+            // Find the closest point by time
+            let closestIndex = 0;
+            let minTimeDiff = Math.abs($state.generatedPoints[0].time - mouseTime);
+            for (let j = 1; j < $state.generatedPoints.length; j++) {
+              const timeDiff = Math.abs($state.generatedPoints[j].time - mouseTime);
+              if (timeDiff < minTimeDiff) {
+                minTimeDiff = timeDiff;
+                closestIndex = j;
+              }
+            }
+            
+            $state.visible.highlightIndex = closestIndex;
+          } else {
+            // Fallback to index-based positioning when all times are 0
+            $state.visible.highlightIndex = Math.round(
+              (($state.generatedPoints.length - 1) * (mouse - margin.left)) /
+                (canvas.width - margin.left - margin.right)
+            );
+          }
 
           // write speed value of selected point at top right
           ctx.font = "20px monospace";
