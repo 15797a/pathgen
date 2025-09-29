@@ -86,7 +86,7 @@ const fill = (
   velocity: number
 ): GeneratedPoint[] => {
   const res: GeneratedPoint[] = [];
-  const space = 0.5;
+  const space = 0.75;
   const numPoints = Math.ceil(
     length(sectioned[0], sectioned[1], sectioned[2], sectioned[3]) / space
   );
