@@ -22,6 +22,48 @@
     selectedMode = (selectedMode + 1) % modes.length;
   };
 
+  // simulation state
+  let simActive = false;
+  let simStartTime = 0; // seconds along path timeline
+  let simPerfStart = 0; // performance.now() reference (ms)
+
+  const stopSimulation = () => {
+    simActive = false;
+    $state.visible.highlightIndex = -1;
+  };
+
+  const startSimulationAt = (time: number) => {
+    const points = $state.generatedPoints;
+    if (points.length < 2) return;
+    const maxTime = points[points.length - 1].time;
+    simStartTime = Math.max(0, Math.min(time, maxTime));
+    simPerfStart = performance.now();
+    simActive = true;
+  };
+
+  const handleMouseDown = (e: MouseEvent) => {
+    if (!canvas) return;
+    // right click (button 2) toggles mode
+    if (e.button === 2) {
+      toggleMode();
+      return;
+    }
+    if (e.button !== 0) return;
+    const points = $state.generatedPoints;
+    if (points.length < 2) return;
+    const maxTime = points[points.length - 1].time;
+    if (simActive) {
+      stopSimulation();
+      return;
+    }
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    if (x < margin.left || x > canvas.width - margin.right) return; // outside graph area
+    const rel = (x - margin.left) / (canvas.width - margin.left - margin.right);
+    const startTime = rel * maxTime;
+    startSimulationAt(startTime);
+  };
+
   $: mode = modes[selectedMode];
 
   const margin = {
@@ -153,6 +195,22 @@
 
       // GRAPH
       ctx.setLineDash([]);
+      // advance simulation if active
+      if (simActive) {
+        const pts = $state.generatedPoints;
+        const maxTime = pts[pts.length - 1].time;
+        const elapsed = (performance.now() - simPerfStart) / 1000; // s
+        const currentTime = simStartTime + elapsed;
+        if (currentTime >= maxTime) {
+          stopSimulation();
+        } else {
+          // find first index with time >= currentTime
+            let idx = pts.findIndex((p) => p.time >= currentTime);
+            if (idx === -1) idx = pts.length - 1;
+            $state.visible.highlightIndex = idx;
+        }
+      }
+
       for (let i = 0; i < $state.generatedPoints.length - 1; i++) {
         const start = $state.generatedPoints[i];
         const end = $state.generatedPoints[i + 1];
@@ -212,50 +270,46 @@
           "#fb923c"
         );
 
-        // MOUSE LINE
-        ctx.strokeStyle = "white";
-        if (mouse && mouse > margin.left && mouse < canvas.width - margin.right) {
-          ctx.beginPath();
-          ctx.moveTo(mouse, margin.top);
-          ctx.lineTo(mouse, canvas.height - margin.bottom);
-          ctx.stroke();
+        // MOUSE LINE (disabled during simulation)
+        if (!simActive) {
+          ctx.strokeStyle = "white";
+          if (mouse && mouse > margin.left && mouse < canvas.width - margin.right) {
+            ctx.beginPath();
+            ctx.moveTo(mouse, margin.top);
+            ctx.lineTo(mouse, canvas.height - margin.bottom);
+            ctx.stroke();
 
-          const maxTime = $state.generatedPoints[$state.generatedPoints.length - 1].time;
-          
-          if (maxTime > 0) {
-            const mouseTime = (maxTime * (mouse - margin.left)) / 
-              (canvas.width - margin.left - margin.right);
-            
-            // Find the closest point by time
-            let closestIndex = 0;
-            let minTimeDiff = Math.abs($state.generatedPoints[0].time - mouseTime);
-            for (let j = 1; j < $state.generatedPoints.length; j++) {
-              const timeDiff = Math.abs($state.generatedPoints[j].time - mouseTime);
-              if (timeDiff < minTimeDiff) {
-                minTimeDiff = timeDiff;
-                closestIndex = j;
+            const maxTime = $state.generatedPoints[$state.generatedPoints.length - 1].time;
+            if (maxTime > 0) {
+              const mouseTime = (maxTime * (mouse - margin.left)) /
+                (canvas.width - margin.left - margin.right);
+              let closestIndex = 0;
+              let minTimeDiff = Math.abs($state.generatedPoints[0].time - mouseTime);
+              for (let j = 1; j < $state.generatedPoints.length; j++) {
+                const timeDiff = Math.abs($state.generatedPoints[j].time - mouseTime);
+                if (timeDiff < minTimeDiff) {
+                  minTimeDiff = timeDiff;
+                  closestIndex = j;
+                }
               }
+              $state.visible.highlightIndex = closestIndex;
+            } else {
+              $state.visible.highlightIndex = Math.round(
+                (($state.generatedPoints.length - 1) * (mouse - margin.left)) /
+                  (canvas.width - margin.left - margin.right)
+              );
             }
-            
-            $state.visible.highlightIndex = closestIndex;
-          } else {
-            // Fallback to index-based positioning when all times are 0
-            $state.visible.highlightIndex = Math.round(
-              (($state.generatedPoints.length - 1) * (mouse - margin.left)) /
-                (canvas.width - margin.left - margin.right)
-            );
-          }
 
-          // write speed value of selected point at top right
-          ctx.font = "20px monospace";
-          ctx.textAlign = "right";
-          ctx.textBaseline = "bottom";
-          ctx.fillText(
-            $state.generatedPoints[$state.visible.highlightIndex][mode.name].toFixed(2),
-            canvas.width - margin.right - 20,
-            margin.top - 3
-          );
-        } else $state.visible.highlightIndex = -1;
+            ctx.font = "20px monospace";
+            ctx.textAlign = "right";
+            ctx.textBaseline = "bottom";
+            ctx.fillText(
+              $state.generatedPoints[$state.visible.highlightIndex][mode.name].toFixed(2),
+              canvas.width - margin.right - 20,
+              margin.top - 3
+            );
+          } else $state.visible.highlightIndex = -1;
+        }
       }
 
       animationId = requestAnimationFrame(render);
@@ -274,5 +328,5 @@
 </script>
 
 <div class="border-2 border-white rounded-3xl overflow-hidden">
-  <canvas bind:this={canvas} {width} height="200" on:mousedown={toggleMode}></canvas>
+  <canvas bind:this={canvas} {width} height="200" on:mousedown={handleMouseDown} on:contextmenu={(e)=>e.preventDefault()}></canvas>
 </div>

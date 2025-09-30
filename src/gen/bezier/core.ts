@@ -151,11 +151,50 @@ export const bezier = (
   }
 
   // angular velocity
-  for (let j = 1; j < points.length; j++) {
-    const point = points[j];
-    const t = j / points.length;
-    const curve = point.angular;
-    point.angular = curve * point.speed;
+  if (points.length > 2) {
+    // Recompute curvature using geometric finite differences across the entire polyline
+    const curvatures: number[] = new Array(points.length).fill(0);
+    for (let i = 1; i < points.length - 1; i++) {
+      const pPrev = points[i - 1];
+      const p = points[i];
+      const pNext = points[i + 1];
+      const ax = p.x - pPrev.x;
+      const ay = p.y - pPrev.y;
+      const bx = pNext.x - p.x;
+      const by = pNext.y - p.y;
+      const aLen = Math.hypot(ax, ay);
+      const bLen = Math.hypot(bx, by);
+      if (aLen === 0 || bLen === 0) {
+        curvatures[i] = 0;
+        continue;
+      }
+      // Normalize
+      const anx = ax / aLen;
+      const any = ay / aLen;
+      const bnx = bx / bLen;
+      const bny = by / bLen;
+      const cross = anx * bny - any * bnx; // signed
+      const dot = anx * bnx + any * bny;
+      const angle = Math.atan2(cross, dot); // signed turning angle between segments
+      const arcLen = (aLen + bLen) / 2;
+      curvatures[i] = arcLen === 0 ? 0 : angle / arcLen; // κ ≈ Δθ / Δs
+    }
+    // Endpoints inherit neighbor curvature
+    curvatures[0] = curvatures[1];
+    curvatures[curvatures.length - 1] = curvatures[curvatures.length - 2];
+
+    // Optional light smoothing (moving average window = 3) to reduce residual noise
+    for (let i = 1; i < curvatures.length - 1; i++) {
+      curvatures[i] = (curvatures[i - 1] + curvatures[i] + curvatures[i + 1]) / 3;
+    }
+
+    // Assign angular velocity = curvature * linear speed
+    for (let i = 0; i < points.length; i++) {
+      points[i].angular = curvatures[i] * points[i].speed;
+    }
+  } else if (points.length === 2) {
+    points[0].angular = 0;
+    points[1].angular = 0;
   }
 
   return points;
