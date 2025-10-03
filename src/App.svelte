@@ -430,7 +430,7 @@
                             flag.type === "boolean"
                               ? false
                               : flag.type === "action"
-                                ? true
+                                ? null
                                 : 0;
                         } else if (point) {
                           delete point.flagsAny[flag.key];
