@@ -197,5 +197,9 @@ export const bezier = (
     points[1].angular = 0;
   }
 
+  points.forEach((point) => {
+    point.time -= points[0].time ?? 0;
+  });
+
   return points;
 };
