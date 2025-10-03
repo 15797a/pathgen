@@ -163,17 +163,17 @@
       ctx.fillStyle = mode.color;
 
       // top number
-      ctx.fillText(max.toFixed(2), margin.left - 5, margin.top);
+      ctx.fillText(max?.toFixed(2), margin.left - 5, margin.top);
 
       // middle number
       ctx.fillText(
-        ((max + min) / 2).toFixed(2),
+        ((max + min) / 2)?.toFixed(2),
         margin.left - 5,
         margin.top + (canvas.height - margin.bottom - margin.top) / 2
       );
 
       // bottom number
-      ctx.fillText(min.toFixed(2), margin.left - 5, canvas.height - margin.bottom);
+      ctx.fillText(min?.toFixed(2), margin.left - 5, canvas.height - margin.bottom);
 
       // BOTTOM NUMBERS
       ctx.textAlign = "center";
@@ -188,7 +188,7 @@
 
       // right number (ending time)
       ctx.fillText(
-        maxTime.toFixed(2) + "s",
+        maxTime?.toFixed(2) + "s",
         canvas.width - margin.right,
         canvas.height - margin.bottom + 5
       );
@@ -304,7 +304,7 @@
             ctx.textAlign = "right";
             ctx.textBaseline = "bottom";
             ctx.fillText(
-              $state.generatedPoints[$state.visible.highlightIndex][mode.name].toFixed(2),
+              $state.generatedPoints[$state.visible.highlightIndex][mode.name]?.toFixed(2),
               canvas.width - margin.right - 20,
               margin.top - 3
             );

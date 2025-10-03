@@ -103,7 +103,7 @@
             <h1 class="text-3xl w-full pb-2 border-b-2 border-b-white flex items-center">
               {#if point}
                 {#if point instanceof Point}
-                  Point at ({point.x.toFixed(2)}, {point.y.toFixed(2)})
+                  Point at ({point.x?.toFixed(2)}, {point.y?.toFixed(2)})
                 {:else}
                   Flag at index {point.index}
                 {/if}
@@ -172,7 +172,7 @@
               </select>
             </label>
             <label>
-              K: ({$config.k.toFixed(1)})
+              K: ({$config.k?.toFixed(1)})
               <input
                 type="range"
                 class="slider"
