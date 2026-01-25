@@ -176,7 +176,7 @@
               <input
                 type="range"
                 class="slider"
-                min={1}
+                min={0.1}
                 max={10}
                 step={0.1}
                 bind:value={$config.k}
@@ -473,11 +473,25 @@
           {/if}
         </div>
         <div class="border-t-2 mt-auto border-transparent px-5">
-          <div class="flex gap-3 items-center relative justify-between">
+          <div class="flex gap-1 items-center relative justify-between">
             <button class="button" on:click={() => undo(1)}>Undo</button>
+            <button
+              class="button"
+              on:click={() => {
+                points.update((points) => {
+                  points.forEach((point) => {
+                    point.y *= -1;
+                    point.handles.forEach((point) => {
+                      point.y *= -1;
+                    });
+                  });
+                  return points;
+                });
+              }}>Reverse</button
+            >
             <div class="divider"></div>
-            <div class="flex items-center gap-3">
-              <label class="button">
+            <div class="flex items-center">
+              <label class="button rounded-none rounded-l-lg">
                 AutoSav{$config.autosave ? "ing" : "e"}
                 <!-- ™️ -->
                 <input
@@ -487,9 +501,15 @@
                   bind:checked={$config.autosave}
                 />
               </label>
-              <button id="import" class="button" on:click={load}>Import</button>
-              <button id="save" class="button" on:click={save}>Save</button>
-              <button id="saveas" class="button" on:click={saveAs}>Save As</button>
+              <button id="import" class="button rounded-none" on:click={load}
+                >Import</button
+              >
+              <button id="save" class="button rounded-none" on:click={save}>Save</button>
+              <button
+                id="saveas"
+                class="button rounded-none rounded-r-lg"
+                on:click={saveAs}>Save As</button
+              >
             </div>
           </div>
         </div>

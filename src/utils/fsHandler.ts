@@ -31,7 +31,7 @@ export class FSHandler {
         suggestedName: "path.vpp",
         types: [
           {
-            description: "Vex Pure Pursuit",
+            description: "LEXLib Path File",
             accept: {
               "*/*": [`.${FSHandler.extension}`],
             },

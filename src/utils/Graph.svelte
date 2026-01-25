@@ -148,17 +148,20 @@
       const max =
         mode.name === "speed"
           ? $config.bot.maxVelocity
-          : $state.generatedPoints.reduce(
-              (a, b) => Math.max(a, b[mode.name]),
-              $state.generatedPoints[0][mode.name]
+          : Math.max(
+              Math.abs($state.generatedPoints.reduce(
+                (a, b) => Math.max(a, b[mode.name]),
+                $state.generatedPoints[0][mode.name]
+              )),
+              Math.abs($state.generatedPoints.reduce(
+                (a, b) => Math.min(a, b[mode.name]),
+                $state.generatedPoints[0][mode.name]
+              ))
             );
       const min =
         mode.name === "speed"
           ? -$config.bot.maxVelocity
-          : $state.generatedPoints.reduce(
-              (a, b) => Math.min(a, b[mode.name]),
-              $state.generatedPoints[0][mode.name]
-            );
+          : -max;
 
       ctx.fillStyle = mode.color;
 
@@ -167,7 +170,7 @@
 
       // middle number
       ctx.fillText(
-        ((max + min) / 2)?.toFixed(2),
+        "0.00",
         margin.left - 5,
         margin.top + (canvas.height - margin.bottom - margin.top) / 2
       );
@@ -256,17 +259,21 @@
           $config.bot.maxVelocity,
           "white"
         );
+        const angularMax = Math.max(
+          Math.abs($state.generatedPoints.reduce(
+            (a, b) => Math.max(a, b.angular),
+            $state.generatedPoints[0].angular
+          )),
+          Math.abs($state.generatedPoints.reduce(
+            (a, b) => Math.min(a, b.angular),
+            $state.generatedPoints[0].angular
+          ))
+        );
         graphSegment(
           start.angular,
           end.angular,
-          $state.generatedPoints.reduce(
-            (a, b) => Math.min(a, b.angular),
-            $state.generatedPoints[0].angular
-          ),
-          $state.generatedPoints.reduce(
-            (a, b) => Math.max(a, b.angular),
-            $state.generatedPoints[0].angular
-          ),
+          -angularMax,
+          angularMax,
           "#fb923c"
         );
 
