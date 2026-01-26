@@ -92,6 +92,7 @@ export interface PathConfig {
   flags: { [key: string]: FlagType };
   distanceBetween: number;
   k: number;
+  kSlip: number;
   layers: boolean;
   bot: {
     maxVelocity: number;
@@ -108,6 +109,7 @@ export const config = writable<PathConfig>({
   flags: {},
   distanceBetween: 0.5,
   k: 3,
+  kSlip: 0,
   layers: false,
   bot: {
     maxVelocity: 24,
@@ -204,7 +206,7 @@ points.subscribe((p) => {
       s.generatedPoints = algorithm(waypoints, get(config).k);
 
       flagPoints.update((f) =>
-        f.filter((flagPoint) => flagPoint.index < s.generatedPoints.length)
+        f.filter((flagPoint) => flagPoint.index < s.generatedPoints.length),
       );
 
       return s;
@@ -255,18 +257,17 @@ const exportData = () => {
 
   return {
     config: get(config),
-    points: get(points)
-      .map((point) => point.export()),
+    points: get(points).map((point) => point.export()),
     flagPoints: get(flagPoints),
-    generated: generated
-      .map((point) => ({
-        x: Math.round(point.x * 100),
-        y: Math.round(point.y * 100),
-				time: Math.round(point.time * 100),
-				speed: Math.round(point.speed * 100),
-				angular: Math.round(point.angular * 100),
-				flags: point.flags
-      })),
+    generated: generated.map((point) => ({
+      x: Math.round(point.x * 100),
+      y: Math.round(point.y * 100),
+      time: Math.round(point.time * 100),
+      speed: Math.round(point.speed * 100),
+      angular: Math.round(point.angular * 100),
+      lateral: Math.round(point.lateral * 100),
+      flags: point.flags,
+    })),
     version: CONSTANTS.version,
   };
 };
@@ -277,7 +278,7 @@ const importData = (data: any) => {
   if (
     data.version !== CONSTANTS.version &&
     !confirm(
-      "This file was created with a different version of the app. Some features may not work as expected. Do you want to continue?"
+      "This file was created with a different version of the app. Some features may not work as expected. Do you want to continue?",
     )
   )
     return;
@@ -289,8 +290,8 @@ const importData = (data: any) => {
           handles: point.handles,
           reverse: point.reverse,
           layers: point.layers,
-        })
-    )
+        }),
+    ),
   );
   flagPoints.set(data.flagPoints);
 

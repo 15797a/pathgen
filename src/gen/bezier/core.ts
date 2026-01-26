@@ -19,7 +19,7 @@ const evaluate = (sectioned: [Point, Point, Point, Point], t: number): Point => 
     mt * mt * mt * sectioned[0].y +
       3 * mt * mt * t * sectioned[1].y +
       3 * mt * t * t * sectioned[2].y +
-      t * t * t * sectioned[3].y
+      t * t * t * sectioned[3].y,
   );
 };
 
@@ -83,12 +83,12 @@ const length = (p0: Point, p1: Point, p2: Point, p3: Point, n: number = 100): nu
 const fill = (
   sectioned: [Point, Point, Point, Point],
   k: number,
-  velocity: number
+  velocity: number,
 ): GeneratedPoint[] => {
   const res: GeneratedPoint[] = [];
   const space = 0.75;
   const numPoints = Math.ceil(
-    length(sectioned[0], sectioned[1], sectioned[2], sectioned[3]) / space
+    length(sectioned[0], sectioned[1], sectioned[2], sectioned[3]) / space,
   );
   for (let j = 0; j < numPoints; j++) {
     const t = j / numPoints;
@@ -105,7 +105,8 @@ export const bezier = (
   path: Point[],
   k: number,
   velocity: number,
-  acceleration: number
+  acceleration: number,
+  kSlip: number = 0,
 ): GeneratedPoint[] => {
   const sectioned = section(path);
   const points = sectioned.flatMap((section) => fill(section, k, velocity));
@@ -118,8 +119,8 @@ export const bezier = (
         point.speed,
         Math.sqrt(
           2 * acceleration * point.distance(points[j + 1]) +
-            Math.pow(points[j + 1].speed, 2)
-        )
+            Math.pow(points[j + 1].speed, 2),
+        ),
       );
     }
   }
@@ -133,8 +134,8 @@ export const bezier = (
         point.speed,
         Math.sqrt(
           2 * acceleration * point.distance(points[j - 1]) +
-            Math.pow(points[j - 1].speed, 2)
-        )
+            Math.pow(points[j - 1].speed, 2),
+        ),
       );
     }
   }
@@ -154,13 +155,78 @@ export const bezier = (
   // angular velocity
   for (let j = 1; j < points.length; j++) {
     const point = points[j];
-    const t = j / points.length;
+    // const t = j / points.length;
     const curve = point.angular;
     point.angular = curve * point.speed;
   }
-  points.forEach((point) => {
-    point.time -= points[0].time ?? 0;
-  });
+
+  // Shift time so start is 0
+  if (points.length > 0) {
+    const startTime = points[0].time;
+    points.forEach((point) => {
+      point.time -= startTime;
+    });
+  }
+
+  // Lateral Slip & Pose Integration
+  // 1. Calculate Lateral Velocity and Store Bezier Geometry
+  const bezierGeometry = points.map((p) => ({ x: p.x, y: p.y }));
+
+  for (let i = 0; i < points.length; i++) {
+    const point = points[i];
+    // v_y = k_slip * v * omega
+    point.lateral = kSlip * point.speed * point.angular;
+
+    // Clamp
+    const maxLatRatio = 0.25;
+    const limit = maxLatRatio * Math.abs(point.speed);
+    point.lateral = Math.max(-limit, Math.min(limit, point.lateral));
+  }
+
+  // 2. Integrate Pose
+  // points[0] stays at original position (or we assume it does)
+  for (let i = 1; i < points.length; i++) {
+    const prev = points[i - 1];
+    const cur = points[i];
+    const p0 = bezierGeometry[i - 1];
+    const p1 = bezierGeometry[i];
+
+    // Heading from Bezier tangent
+    // Use Math.atan2(dy, dx)
+    const heading = Math.atan2(p1.y - p0.y, p1.x - p0.x);
+
+    const dt = cur.time - prev.time;
+
+    // x_dot = v_x * cos(theta) - v_y * sin(theta)
+    // y_dot = v_x * sin(theta) + v_y * cos(theta)
+
+    const vx = prev.speed;
+    const vy = prev.lateral;
+
+    const dx = vx * Math.cos(heading) - vy * Math.sin(heading);
+    const dy = vx * Math.sin(heading) + vy * Math.cos(heading);
+
+    cur.x = prev.x + dx * dt;
+    cur.y = prev.y + dy * dt;
+  }
+
+  // 3. Endpoint Correction
+  if (points.length > 0) {
+    const targetPoint = bezierGeometry[bezierGeometry.length - 1];
+    const actualEnd = points[points.length - 1];
+    const endError = {
+      x: targetPoint.x - actualEnd.x,
+      y: targetPoint.y - actualEnd.y,
+    };
+
+    if (Math.hypot(endError.x, endError.y) > 1e-4) {
+      for (let i = 0; i < points.length; i++) {
+        const alpha = i / (points.length - 1);
+        points[i].x += endError.x * alpha;
+        points[i].y += endError.y * alpha;
+      }
+    }
+  }
 
   return points;
 };

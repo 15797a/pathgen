@@ -7,7 +7,13 @@ const inner_cubicSpline = (path: Point[], k = 3): GeneratedPoint[] => {
   if (path.length < 4) return [];
 
   const config = get(configStore);
-  return bezier(path, k, config.bot.maxVelocity, config.bot.maxAcceleration);
+  return bezier(
+    path,
+    k,
+    config.bot.maxVelocity,
+    config.bot.maxAcceleration,
+    config.kSlip,
+  );
 };
 
 const cubicSpline = (path: PathPoint[], k = 3): GeneratedPoint[] => {
@@ -32,7 +38,7 @@ const cubicSpline = (path: PathPoint[], k = 3): GeneratedPoint[] => {
     .at(-1)
     ?.push(
       Point.from(path.at(-1)!.handles[0].add(path.at(-1)!)),
-      Point.from(path.at(-1)!)
+      Point.from(path.at(-1)!),
     );
 
   const generatedPaths = paths

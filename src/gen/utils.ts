@@ -51,12 +51,14 @@ export interface GeneratedPointExport {
   time: number;
   speed: number;
   angular: number;
+  lateral: number;
 }
 
 export class GeneratedPoint extends Point {
   time: number = 0;
   speed: number = 0;
   angular: number = 0;
+  lateral: number = 0;
   index: number = 0;
 
   constructor(
@@ -65,12 +67,14 @@ export class GeneratedPoint extends Point {
     time = 0,
     speed: number = 0,
     angular = 0,
-    index: number = 0
+    lateral = 0,
+    index: number = 0,
   ) {
     super(x, y);
     this.time = time;
     this.speed = speed;
     this.angular = angular;
+    this.lateral = lateral;
     this.index = index;
   }
 
@@ -81,6 +85,7 @@ export class GeneratedPoint extends Point {
       time: this.time,
       speed: this.speed,
       angular: this.angular,
+      lateral: this.lateral,
     };
   }
 
@@ -89,6 +94,7 @@ export class GeneratedPoint extends Point {
     p.time = point.time;
     p.speed = point.speed;
     p.angular = point.angular;
+    p.lateral = point.lateral;
     return p;
   }
 
@@ -99,7 +105,8 @@ export class GeneratedPoint extends Point {
       this.time,
       this.speed,
       this.angular,
-      this.index
+      this.lateral,
+      this.index,
     ) as typeof this;
   }
 }

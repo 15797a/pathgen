@@ -183,6 +183,17 @@
               />
             </label>
             <label>
+              K Slip: ({$config.kSlip?.toFixed(3)})
+              <input
+                type="range"
+                class="slider"
+                min={0}
+                max={1.0}
+                step={0.001}
+                bind:value={$config.kSlip}
+              />
+            </label>
+            <label>
               Background:
               <select
                 bind:value={$config.background}
