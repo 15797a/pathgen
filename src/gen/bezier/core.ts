@@ -177,10 +177,10 @@ export const bezier = (
     // v_y = k_slip * v * omega
     point.lateral = kSlip * point.speed * point.angular;
 
-    // Clamp
-    const maxLatRatio = 0.25;
-    const limit = maxLatRatio * Math.abs(point.speed);
-    point.lateral = Math.max(-limit, Math.min(limit, point.lateral));
+    // // Clamp
+    // const maxLatRatio = 0.25;
+    // const limit = maxLatRatio * Math.abs(point.speed);
+    // point.lateral = Math.max(-limit, Math.min(limit, point.lateral));
   }
 
   // 2. Integrate Pose
